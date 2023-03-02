@@ -17,7 +17,7 @@ class MainScreen {
         return (
             <div class="MainScreen">
                 <Inputs/>
-                <Skirmish/>
+                <SkirmishSimulation/>
             </div>
         )
     }
@@ -26,9 +26,28 @@ class MainScreen {
 class Inputs {
     render() {
         return (
-            <button onClick={() => sim(campaign.skirmishes["test"])}>
-                Sim!!
+            <button onClick={() => SimulateSkirmishOdds(campaign.skirmishes["test"])}>
+                Simulate!!
             </button>
+        )
+    }
+}
+
+class SkirmishSimulation {
+    render() {
+        const skirmish = campaign.skirmishes["test"]
+        return (
+            <div class="Skirmish">
+                {skirmish.squads.map((squad) => {
+                    if(squad.simulation == undefined) return
+                    return (
+                        <div class="Squad">
+                            <div>{squad.alignment}</div>
+                            <div>{Math.round(squad.simulation.odds * 100)}% death during 10 simulations</div>
+                        </div>
+                    )
+                })}
+            </div>
         )
     }
 }
@@ -39,7 +58,6 @@ class Skirmish {
         return (
             <div class="Skirmish">
                 {skirmish.squads.map((squad) => {
-                    if(squad.turns == undefined) return
                     return (
                         <div class="Squad">
                             <div>{squad.alignment}</div>
@@ -70,7 +88,55 @@ class Random {
     }
 }
 
-function sim(skirmish) {
+function CloneSkirmish(skirmish) {
+    return {
+        "squads": skirmish.squads.map((squad) => {
+            return {
+                "alignment": squad.alignment,
+                "count": squad.count,
+                "classkey": squad.classkey,
+            }
+        })
+    }
+}
+
+function SimulateSkirmishOdds(protoskirmish) {
+    const simulatedSkirmishes = []
+    const NUMBER_OF_SIMULATIONS = 500
+    for(let i = 0; i < NUMBER_OF_SIMULATIONS; i += 1) {
+        simulatedSkirmishes.push(SimulateSkirmish(protoskirmish))
+    }
+
+    protoskirmish.squads[0].simulation = {"failedSkirmishes": 0, "totalSkirmishes": 0},
+    protoskirmish.squads[1].simulation = {"failedSkirmishes": 0, "totalSkirmishes": 0},
+    simulatedSkirmishes.forEach((simulatedSkirmish) => {
+        protoskirmish.squads[0].simulation.totalSkirmishes += 1
+        protoskirmish.squads[1].simulation.totalSkirmishes += 1
+        if(simulatedSkirmish.squads[0].turns[0].hasBeenDefeated) {
+            protoskirmish.squads[0].simulation.failedSkirmishes += 1
+        }
+        if(simulatedSkirmish.squads[1].turns[0].hasBeenDefeated) {
+            protoskirmish.squads[1].simulation.failedSkirmishes += 1
+        }
+    })
+    protoskirmish.squads[0].simulation.odds = (protoskirmish.squads[0].simulation.failedSkirmishes / protoskirmish.squads[0].simulation.totalSkirmishes)
+    protoskirmish.squads[1].simulation.odds = (protoskirmish.squads[1].simulation.failedSkirmishes / protoskirmish.squads[1].simulation.totalSkirmishes)
+}
+
+function SimulateSkirmish(skirmish) {
+    skirmish = CloneSkirmish(skirmish)
+    const NUMBER_OF_SIMULATED_ROUNDS = 30
+    for(let r = 0; r < NUMBER_OF_SIMULATED_ROUNDS; r += 1) {
+        SimulateSkirmishRound(skirmish)
+        if(skirmish.squads[0].turns[0].hasBeenDefeated
+        || skirmish.squads[1].turns[0].hasBeenDefeated) {
+            break
+        }
+    }
+    return skirmish
+}
+
+function SimulateSkirmishRound(skirmish) {
     skirmish.round = skirmish.round || 0
     skirmish.round += 1
 
@@ -206,7 +272,7 @@ const campaign = {
                 {
                     "alignment": "nylea",
                     "count": 50,
-                    "classkey": "setessan-hoplite",
+                    "classkey": "setessan-hoplite" // "setessan-hoplite",
                 },
             ]
         }

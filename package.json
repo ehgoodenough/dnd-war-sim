@@ -18,6 +18,7 @@
   "dependencies": {
     "keyb": "^1.4.1",
     "preact": "^10.11.3",
+    "save": "^2.9.0",
     "shortid": "^2.2.16",
     "statgrab": "^1.2.2",
     "yaafloop": "^1.2.0"
