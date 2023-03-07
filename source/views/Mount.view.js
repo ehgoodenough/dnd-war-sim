@@ -38,12 +38,12 @@ class SkirmishSimulation {
         const skirmish = campaign.skirmishes["test"]
         return (
             <div class="Skirmish">
-                {skirmish.squads.map((squad) => {
+                {skirmish.squads.map((squad, index) => {
                     if(squad.simulation == undefined) return
                     return (
                         <div class="Squad">
                             <div>{squad.alignment}</div>
-                            <div>{Math.round(squad.simulation.odds * 100)}% death during 10 simulations</div>
+                            <div>{Math.round(skirmish.squads[(index + 1) % 2].simulation.odds * 100)}% victory</div>
                         </div>
                     )
                 })}
@@ -182,12 +182,20 @@ function SimulateSkirmishRound(skirmish) {
                         return
                     }
 
-                    const accuracyRoll = Random.range(1, 20)
+                    let accuracyRoll = Random.range(1, 20)
+                    if(performerUnit.class.attack.hasAdvantage) {
+                        accuracyRoll = Math.max(accuracyRoll, Random.range(1, 20))
+                    }
                     const accuracy = accuracyRoll + performerUnit.class.attack.accuracy
-                    const damageRoll = 0
-                    const damage = damageRoll + performerUnit.class.attack.damage
                     const isHit = (accuracy >= targetUnit.class.armor)
                     const isCriticalHit = (accuracyRoll == 20)
+
+                    const damageRoll = performerUnit.class.attack.damage
+                    let damage = damageRoll
+                    if(isCriticalHit) {
+                        damage += damageRoll
+                    }
+                    // damage += STATIC DAMAGE AMOUNT
 
                     if(isHit == true) {
                         targetUnit.health -= damage
@@ -256,6 +264,7 @@ const classes = {
             "count": 2,
             "accuracy": +5,
             "damage": 6,
+            "hasAdvantage": true,
         }
     },
 }
@@ -266,12 +275,12 @@ const campaign = {
             "squads": [
                 {
                     "alignment": "iroas",
-                    "count": 50,
+                    "count": 115,
                     "classkey": "akroan-hoplite",
                 },
                 {
                     "alignment": "nylea",
-                    "count": 50,
+                    "count": 100,
                     "classkey": "setessan-hoplite" // "setessan-hoplite",
                 },
             ]
