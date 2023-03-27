@@ -26,7 +26,7 @@ class MainScreen {
 class Inputs {
     render() {
         return (
-            <button onClick={() => SimulateSkirmishOdds(campaign.skirmishes["test"])}>
+            <button onClick={() => SimulateSkirmishOdds(TEST_SKIRMISH)}>
                 Simulate!!
             </button>
         )
@@ -35,37 +35,15 @@ class Inputs {
 
 class SkirmishSimulation {
     render() {
-        const skirmish = campaign.skirmishes["test"]
+        const skirmish = TEST_SKIRMISH
+        if(skirmish.simulation == undefined) return
         return (
-            <div class="Skirmish">
-                {skirmish.squads.map((squad, index) => {
-                    if(squad.simulation == undefined) return
+            <div class="SkirmishSimulation">
+                {skirmish.simulation.squads.map((squad, index) => {
                     return (
                         <div class="Squad">
-                            <div>{squad.alignment}</div>
-                            <div>{Math.round(skirmish.squads[(index + 1) % 2].simulation.odds * 100)}% victory</div>
-                        </div>
-                    )
-                })}
-            </div>
-        )
-    }
-}
-
-class Skirmish {
-    render() {
-        const skirmish = campaign.skirmishes["test"]
-        return (
-            <div class="Skirmish">
-                {skirmish.squads.map((squad) => {
-                    return (
-                        <div class="Squad">
-                            <div>{squad.alignment}</div>
-                            <div>{squad.turns[0]?.hitAttacks} of {squad.turns[0]?.totalAttacks} hit attacks ({Math.round(squad.turns[0]?.hitAttacks / squad.turns[0]?.totalAttacks * 100) + "%"})</div>
-                            <div>{squad.turns[0]?.damage} damage performed</div>
-                            <div>{squad.turns[0]?.kills} killing blows</div>
-                            <div>{squad.turns[0]?.aliveUnits} of {squad.turns[0]?.totalUnits} alive units ({Math.round(squad.turns[0]?.aliveUnits / squad.turns[0]?.totalUnits * 100) + "%"})</div>
-                            <div>{squad.turns[0]?.health} health</div>
+                            <div>{skirmish.squads[index].alignment}</div>
+                            <div>{Math.round(skirmish.simulation.squads[index].winrate * 100)}% victory</div>
                         </div>
                     )
                 })}
@@ -107,20 +85,25 @@ function SimulateSkirmishOdds(protoskirmish) {
         simulatedSkirmishes.push(SimulateSkirmish(protoskirmish))
     }
 
-    protoskirmish.squads[0].simulation = {"failedSkirmishes": 0, "totalSkirmishes": 0},
-    protoskirmish.squads[1].simulation = {"failedSkirmishes": 0, "totalSkirmishes": 0},
+    protoskirmish.simulation = {
+        "totalSkirmishes": 0,
+        "squads": [
+            {"failedSkirmishes": 0},
+            {"failedSkirmishes": 0},
+        ],
+    }
     simulatedSkirmishes.forEach((simulatedSkirmish) => {
-        protoskirmish.squads[0].simulation.totalSkirmishes += 1
-        protoskirmish.squads[1].simulation.totalSkirmishes += 1
+        protoskirmish.simulation.totalSkirmishes += 1
         if(simulatedSkirmish.squads[0].turns[0].hasBeenDefeated) {
-            protoskirmish.squads[0].simulation.failedSkirmishes += 1
+            protoskirmish.simulation.squads[0].failedSkirmishes += 1
         }
         if(simulatedSkirmish.squads[1].turns[0].hasBeenDefeated) {
-            protoskirmish.squads[1].simulation.failedSkirmishes += 1
+            protoskirmish.simulation.squads[1].failedSkirmishes += 1
         }
     })
-    protoskirmish.squads[0].simulation.odds = (protoskirmish.squads[0].simulation.failedSkirmishes / protoskirmish.squads[0].simulation.totalSkirmishes)
-    protoskirmish.squads[1].simulation.odds = (protoskirmish.squads[1].simulation.failedSkirmishes / protoskirmish.squads[1].simulation.totalSkirmishes)
+    protoskirmish.simulation.squads[0].winrate = 1 - (protoskirmish.simulation.squads[0].failedSkirmishes / protoskirmish.simulation.totalSkirmishes)
+    protoskirmish.simulation.squads[1].winrate = 1 - (protoskirmish.simulation.squads[1].failedSkirmishes / protoskirmish.simulation.totalSkirmishes)
+    console.log(protoskirmish.simulation)
 }
 
 function SimulateSkirmish(skirmish) {
@@ -269,22 +252,19 @@ const classes = {
     },
 }
 
-const campaign = {
-    "skirmishes": {
-        "test": {
-            "squads": [
-                {
-                    "alignment": "iroas",
-                    "count": 115,
-                    "classkey": "akroan-hoplite",
-                },
-                {
-                    "alignment": "nylea",
-                    "count": 100,
-                    "classkey": "setessan-hoplite" // "setessan-hoplite",
-                },
-            ]
-        }
-    }
+const TEST_SKIRMISH = {
+    "squads": [
+        {
+            "alignment": "iroas",
+            "count": 115,
+            "classkey": "akroan-hoplite",
+        },
+        {
+            "alignment": "nylea",
+            "count": 100,
+            "classkey": "setessan-hoplite" // "setessan-hoplite",
+        },
+    ]
 }
-window.campaign = campaign
+
+window.TEST_SKIRMISH = TEST_SKIRMISH
