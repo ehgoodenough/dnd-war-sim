@@ -20,7 +20,8 @@ class MainScreen {
         return (
             <div class="MainScreen">
                 <RerollButton/>
-                <SkirmishSimulation/>
+                <Background/>
+                <Skirmish/>
             </div>
         )
     }
@@ -40,24 +41,53 @@ class RerollButton {
     }
 }
 
-class SkirmishSimulation {
+class Background {
+    render() {
+        return (
+            <div class="Background" style={{
+                "background-image": "url(" + this.art + ")",
+            }}/>
+        )
+    }
+    get art() {
+        return require("images/backgrounds/forest.png")
+    }
+}
+
+class Skirmish {
     render() {
         if(window.skirmish.simulation == undefined) return
         return (
-            <div class="SkirmishSimulation">
+            <div class="Skirmish">
                 {window.skirmish.simulation.squads.map((squad, index) => {
-                    return (
-                        <div class="Squad">
-                            <div class="Status">
-                                <div class="Name">{window.skirmish.state.squads[index].alignment}</div>
-                                <div class="Odds">{Math[index == 0 ? "floor" : "ceil"](window.skirmish.simulation.squads[index].winrate * 100)}% victory</div>
-                            </div>
-                            <div class="Units">
-                                <Unit squad={window.skirmish.state.squads[index]}/>
-                            </div>
-                        </div>
-                    )
+                    return <Squad index={index}/>
                 })}
+            </div>
+        )
+    }
+}
+
+class Squad {
+    render() {
+        const simulation = window.skirmish.simulation
+        const state = window.skirmish.state
+        const index = this.props.index
+        return (
+            <div class="Squad">
+                <div class="Status">
+                    <div class="Name">
+                        {state.squads[index].alignment}
+                    </div>
+                    <div class="Odds">
+                        {Math[simulation.squads[index].winrate < 50 ? "floor" : "ceil"](simulation.squads[index].winrate * 100)}% victory
+                    </div>
+                </div>
+                <div class="Units">
+                    <Unit squad={window.skirmish.state.squads[index]}/>
+                    <Unit squad={window.skirmish.state.squads[index]}/>
+                    <Unit squad={window.skirmish.state.squads[index]}/>
+                    <Unit squad={window.skirmish.state.squads[index]}/>
+                </div>
             </div>
         )
     }
