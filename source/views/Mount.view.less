@@ -12,16 +12,64 @@
 }
 
 .MainScreen {
-    top: 3em;
+    top: 0em;
     left: 0em;
     right: 0em;
-    bottom: 3em;
+    bottom: 0em;
+    width: 32em;
+    margin: auto;
     overflow: hidden;
     position: absolute;
+
+    background-color: green;
 }
 
-.Skirmish {
+.SkirmishSimulation {
+    display: flex;
+
     .Squad {
-        margin-bottom: 1em;
+        flex: 1;
+        position: relative;
+
+        .Status {
+            top: 8em;
+            left: 0em;
+            right: 0em;
+            text-align: center;
+            position: absolute;
+        }
+
+        .Units {
+            top: 16em;
+            left: 0em;
+            right: 0em;
+            text-align: center;
+            position: absolute;
+
+            .Unit {
+                display: flex;
+                align-items: center;
+                .Image {
+                    width: 4em;
+                    height: 4em;
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                }
+                .Count {
+                    width: 4em;
+                    height: 2em;
+                    font: inherit;
+                }
+            }
+        }
     }
+}
+
+.RerollButton {
+    top: 4em;
+    left: 0em;
+    right: 0em;
+    width: 10em;
+    margin: auto;
+    position: absolute;
 }

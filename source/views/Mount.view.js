@@ -14,20 +14,23 @@ export default class Mount {
 
 class MainScreen {
     render() {
+        if(window.skirmish.simulation == undefined) {
+            window.skirmish.simulation = SimulateSkirmishOdds(window.skirmish.state)
+        }
         return (
             <div class="MainScreen">
-                <Inputs/>
+                <RerollButton/>
                 <SkirmishSimulation/>
             </div>
         )
     }
 }
 
-class Inputs {
+class RerollButton {
     render() {
         return (
-            <button onClick={this.onClick}>
-                Go
+            <button class="RerollButton" onClick={this.onClick}>
+                Reroll
             </button>
         )
     }
@@ -45,13 +48,39 @@ class SkirmishSimulation {
                 {window.skirmish.simulation.squads.map((squad, index) => {
                     return (
                         <div class="Squad">
-                            <div>{window.skirmish.state.squads[index].alignment}</div>
-                            <div>{Math.round(window.skirmish.simulation.squads[index].winrate * 100)}% victory</div>
+                            <div class="Status">
+                                <div class="Name">{window.skirmish.state.squads[index].alignment}</div>
+                                <div class="Odds">{Math[index == 0 ? "floor" : "ceil"](window.skirmish.simulation.squads[index].winrate * 100)}% victory</div>
+                            </div>
+                            <div class="Units">
+                                <Unit squad={window.skirmish.state.squads[index]}/>
+                            </div>
                         </div>
                     )
                 })}
             </div>
         )
+    }
+}
+
+class Unit {
+    render() {
+        return (
+            <div class="Unit">
+                <div class="Image" style={{
+                    "background-image": "url(" + classes[this.props.squad.classkey].image + ")",
+                }}/>
+                <input class="Count" type="text" onChange={this.onChange} defaultValue={this.props.squad.count}/>
+            </div>
+        )
+    }
+    get onChange() {
+        return (event) => {
+            if(isNaN(event.target.value)) return
+            this.props.squad.count = event.target.value
+            this.props.squad.count = Math.max(1000, this.props.squad.count)
+            window.skirmish.simulation = SimulateSkirmishOdds(window.skirmish.state)
+        }
     }
 }
 
@@ -83,7 +112,7 @@ function CloneSkirmish(skirmish) {
 
 function SimulateSkirmishOdds(protoskirmish) {
     const simulatedSkirmishes = []
-    const NUMBER_OF_SIMULATIONS = 50
+    const NUMBER_OF_SIMULATIONS = 200
     for(let i = 0; i < NUMBER_OF_SIMULATIONS; i += 1) {
         simulatedSkirmishes.push(SimulateSkirmish(protoskirmish))
     }
@@ -204,6 +233,7 @@ const classes = {
         "health": 52, // 8d8+16
         "armor": 18,
         "speed": 30,
+        "image": require("images/red_archer.png"),
         "attack": {
             "count": 2,
             "accuracy": +5,
@@ -214,6 +244,7 @@ const classes = {
         "health": 58, // 9d8+18
         "armor": 16,
         "speed": 30,
+        "image": require("images/green_archer.png"),
         "attack": {
             "count": 2,
             "accuracy": +5,
@@ -227,14 +258,14 @@ window.skirmish = {
     "state": {
         "squads": [
             {
-                "alignment": "iroas",
-                "count": 115,
+                "alignment": "Iroan Forces",
+                "count": 170,
                 "classkey": "akroan-hoplite",
             },
             {
-                "alignment": "nylea",
+                "alignment": "Nessian Forces",
                 "count": 100,
-                "classkey": "setessan-hoplite" // "setessan-hoplite",
+                "classkey": "setessan-hoplite"
             },
         ]
     }
